@@ -22,8 +22,6 @@ def main():
 	parser.add_argument('--data_dir', type=str, default='Data',
                        help='Data Directory')
 	
-
-
 	args = parser.parse_args()
 	
 	# model_config = json.loads( open('model_config.json').read() )
@@ -68,7 +66,7 @@ def main():
 			text_batch = text_samples[batch_no*batch_size : (batch_no + 1)*batch_size, :]
 			_, loss, prediction = sess.run([optim, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
 				bn_tensors['sentence'] : text_batch
-				})
+			})
 			print("-------------------------------------------------------")
 			print(utils.list_to_string(prediction))
 			print("Loss", i, batch_no, loss)
