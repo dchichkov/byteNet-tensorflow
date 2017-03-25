@@ -1,5 +1,6 @@
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
+
 from ByteNet import ops
 
 class Byte_net_model:
@@ -30,8 +31,8 @@ class Byte_net_model:
 
 		if 'source_mask_chars' in options:
 			# FOR EMBEDDING ONLY THE INPUT SENTENCE BEFORE THE PADDING
-			# THE OUTPUT NETWORK WHOULD BE CONDITIONED ONLY UPTO INPUT LENGTH
-			# ALSO LOSS NEEDS TO BE CALCULATED UPTO TARGET SENTENCE
+			# THE OUTPUT NETWORK WOULD BE CONDITIONED ONLY UP TO INPUT LENGTH
+			# ALSO LOSS NEEDS TO BE CALCULATED UP TO TARGET SENTENCE
 			input_sentence_mask = np.ones( 
 				(options['n_source_quant'], 2 * options['residual_channels']), dtype = 'float32')
 
@@ -254,7 +255,7 @@ class Byte_net_model:
 	def decoder(self, input_, encoder_embedding = None):
 		options = self.options
 		curr_input = input_
-		if encoder_embedding != None:
+		if encoder_embedding is not None:
 			# CONDITION WITH ENCODER EMBEDDING FOR THE TRANSLATION MODEL
 			curr_input = tf.concat(2, [input_, encoder_embedding])
 			print("Decoder Input", curr_input)
@@ -273,7 +274,7 @@ class Byte_net_model:
 
 
 
-	def encode_layer(self, input_, dilation, layer_no, last_layer = False):
+	def encode_layer(self, input_, dilation, layer_no):
 		options = self.options
 		relu1 = tf.nn.relu(input_, name = 'enc_relu1_layer{}'.format(layer_no))
 		conv1 = ops.conv1d(relu1, options['residual_channels'], name = 'enc_conv1d_1_layer{}'.format(layer_no))
