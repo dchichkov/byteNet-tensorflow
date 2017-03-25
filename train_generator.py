@@ -38,12 +38,11 @@ def main():
 		'batch_size' : args.batch_size,
 	}
 
-	byte_net = model.Byte_net_model( model_options )
+	byte_net = model.Byte_net_model(model_options)
 	bn_tensors = byte_net.build_prediction_model()
 
-	optim = tf.train.AdamOptimizer(
-		args.learning_rate, 
-		beta1 = args.beta1).minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
+	optim = tf.train.AdamOptimizer(args.learning_rate, beta1 = args.beta1) \
+		.minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
 
 	sess = tf.InteractiveSession()
 	tf.global_variables_initializer().run()
@@ -62,20 +61,21 @@ def main():
 	for i in range(args.max_epochs):
 		batch_no = 0
 		batch_size = args.batch_size
-		while (batch_no+1) * batch_size < text_samples.shape[0]:
+		while (batch_no + 1) * batch_size < text_samples.shape[0]:
 			text_batch = text_samples[batch_no*batch_size : (batch_no + 1)*batch_size, :]
 			_, loss, prediction = sess.run([optim, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
 				bn_tensors['sentence'] : text_batch
 			})
+
 			print("-------------------------------------------------------")
 			print(utils.list_to_string(prediction))
 			print("Loss", i, batch_no, loss)
 			print("********************************************************")
-			# print prediction
+
 			batch_no += 1
 			
 			if batch_no % 500 == 0:
-				save_path = saver.save(sess, models_path + "model_epoch_{}.ckpt".format(i))
+				saver.save(sess, models_path + "model_epoch_{}.ckpt".format(i))
 
 if __name__ == '__main__':
 	main()
