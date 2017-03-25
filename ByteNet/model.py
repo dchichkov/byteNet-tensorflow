@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import ops
+from ByteNet import ops
 
 class Byte_net_model:
 	def __init__(self, options):
@@ -91,7 +91,7 @@ class Byte_net_model:
 
 		loss = self.loss(decoder_output, target_sentence2)
 
-		tf.scalar_summary('LOSS', loss)
+		tf.summary.scalar('loss', loss)
 
 		flat_logits = tf.reshape( decoder_output, [-1, options['n_target_quant']])
 		prediction = tf.argmax(flat_logits, 1)
@@ -138,7 +138,7 @@ class Byte_net_model:
 		decoder_output = self.decoder(source_embedding)
 		loss = self.loss(decoder_output, target_sentence)
 		
-		tf.scalar_summary('LOSS', loss)
+		tf.summary.scalar('loss', loss)
 
 		flat_logits = tf.reshape( decoder_output, [-1, options['n_target_quant']])
 		prediction = tf.argmax(flat_logits, 1)
@@ -257,7 +257,7 @@ class Byte_net_model:
 		if encoder_embedding != None:
 			# CONDITION WITH ENCODER EMBEDDING FOR THE TRANSLATION MODEL
 			curr_input = tf.concat(2, [input_, encoder_embedding])
-			print "Decoder Input", curr_input
+			print("Decoder Input", curr_input)
 			
 
 		for layer_no, dilation in enumerate(options['decoder_dilations']):

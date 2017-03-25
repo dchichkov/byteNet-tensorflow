@@ -1,10 +1,11 @@
-import tensorflow as tf
-import numpy as np
+import os
 import argparse
-import model_config
-import data_loader
-from ByteNet import model
+import tensorflow as tf
+
 import utils
+import data_loader
+import model_config
+from ByteNet import model
 
 def main():
 	parser = argparse.ArgumentParser()
@@ -47,7 +48,7 @@ def main():
 		beta1 = args.beta1).minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
 
 	sess = tf.InteractiveSession()
-	tf.initialize_all_variables().run()
+	tf.global_variables_initializer().run()
 	saver = tf.train.Saver()
 
 	if args.resume_model:
@@ -55,25 +56,28 @@ def main():
 
 	dl = data_loader.Data_Loader({'model_type' : 'generator', 'dir_name' : args.data_dir})
 	text_samples = dl.load_generator_data( config['sample_size'])
-	print text_samples.shape
+	print(text_samples.shape)
+
+	models_path = "Data/Models/"
+	if not os.path.exists(models_path): os.makedirs(models_path)
 
 	for i in range(args.max_epochs):
 		batch_no = 0
 		batch_size = args.batch_size
 		while (batch_no+1) * batch_size < text_samples.shape[0]:
 			text_batch = text_samples[batch_no*batch_size : (batch_no + 1)*batch_size, :]
-			_, loss, prediction = sess.run( [optim, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
+			_, loss, prediction = sess.run([optim, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
 				bn_tensors['sentence'] : text_batch
 				})
-			print "-------------------------------------------------------"
-			print utils.list_to_string(prediction)
-			print "Loss", i, batch_no, loss
-			print "********************************************************"
+			print("-------------------------------------------------------")
+			print(utils.list_to_string(prediction))
+			print("Loss", i, batch_no, loss)
+			print("********************************************************")
 			# print prediction
 			batch_no += 1
 			
-			if (batch_no % 500) == 0:
-				save_path = saver.save(sess, "Data/Models/model_epoch_{}.ckpt".format(i))
+			if batch_no % 500 == 0:
+				save_path = saver.save(sess, models_path + "model_epoch_{}.ckpt".format(i))
 
 if __name__ == '__main__':
 	main()
