@@ -138,10 +138,10 @@ class Byte_net_model:
 		source_embedding = tf.nn.embedding_lookup(self.w_source_embedding, source_sentence, name = "source_embedding")
 		decoder_output = self.decoder(source_embedding)
 		loss = self.loss(decoder_output, target_sentence)
-		
+
 		tf.summary.scalar('loss', loss)
 
-		flat_logits = tf.reshape( decoder_output, [-1, options['n_target_quant']])
+		flat_logits = tf.reshape(decoder_output, [-1, options['n_target_quant']])
 		prediction = tf.argmax(flat_logits, 1)
 		
 		variables = tf.trainable_variables()
@@ -244,7 +244,7 @@ class Byte_net_model:
 		dilated_conv = ops.dilated_conv1d(relu2, options['residual_channels'], 
 			dilation, options['decoder_filter_width'],
 			causal = True, 
-			name = "dec_dilated_conv_laye{}".format(layer_no)
+			name = "dec_dilated_conv_layer{}".format(layer_no)
 			)
 		
 		relu3 = tf.nn.relu(dilated_conv, name = 'dec_relu3_layer{}'.format(layer_no))
@@ -262,11 +262,10 @@ class Byte_net_model:
 			
 
 		for layer_no, dilation in enumerate(options['decoder_dilations']):
-			layer_output = self.decode_layer(curr_input, dilation, layer_no)
-			curr_input = layer_output
+			curr_input = self.decode_layer(curr_input, dilation, layer_no)
 
 
-		processed_output = ops.conv1d(tf.nn.relu(layer_output), 
+		processed_output = ops.conv1d(tf.nn.relu(curr_input),
 			options['n_target_quant'], 
 			name = 'decoder_post_processing')
 

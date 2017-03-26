@@ -41,6 +41,8 @@ def main():
 	byte_net = model.Byte_net_model(model_options)
 	bn_tensors = byte_net.build_prediction_model()
 
+	writer = tf.train.SummaryWriter("logs", graph=tf.get_default_graph())
+
 	optim = tf.train.AdamOptimizer(args.learning_rate, beta1 = args.beta1) \
 		.minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
 
@@ -58,12 +60,14 @@ def main():
 	models_path = "Data/Models/"
 	if not os.path.exists(models_path): os.makedirs(models_path)
 
+	summary_op = tf.merge_all_summaries()
+
 	for i in range(args.max_epochs):
 		batch_no = 0
 		batch_size = args.batch_size
 		while (batch_no + 1) * batch_size < text_samples.shape[0]:
 			text_batch = text_samples[batch_no*batch_size : (batch_no + 1)*batch_size, :]
-			_, loss, prediction = sess.run([optim, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
+			_, summary, loss, prediction = sess.run([optim, summary_op, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
 				bn_tensors['sentence'] : text_batch
 			})
 
@@ -71,6 +75,8 @@ def main():
 			print(utils.list_to_string(prediction))
 			print("Loss", i, batch_no, loss)
 			print("********************************************************")
+
+			writer.add_summary(summary, batch_no)
 
 			batch_no += 1
 			
