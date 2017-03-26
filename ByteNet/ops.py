@@ -41,8 +41,7 @@ def conv1d(input_,
 			trainable   = True)
 		b = tf.get_variable('b', [output_channels], initializer=tf.constant_initializer(0.0))
 
-		conv = tf.nn.conv1d(input_, w, stride = stride, padding = 'SAME')
-		return tf.reshape(tf.nn.bias_add(conv, b), conv.get_shape())
+		return tf.nn.conv1d(input_, w, stride = stride, padding = 'SAME') + b
 
 def dilated_conv1d(input_, output_channels, dilation, 
 	filter_width = 1, causal = False, name = 'dilated_conv'):
