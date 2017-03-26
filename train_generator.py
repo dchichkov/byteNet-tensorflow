@@ -54,7 +54,7 @@ def main():
 		saver.restore(sess, args.resume_model)
 
 	dl = data_loader.Data_Loader({'model_type' : 'generator', 'dir_name' : args.data_dir})
-	text_samples = dl.load_generator_data( config['sample_size'])
+	text_samples = dl.load_generator_data(config['sample_size'])
 	print(text_samples.shape)
 
 	models_path = "Data/Models/"
