@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 
 def time_to_batch(value, dilation):
@@ -20,18 +21,28 @@ def batch_to_time(value, dilation):
 		return tf.reshape(transposed,
 						  [int(shape[0] / dilation), -1, shape[2]])
 
-def conv1d(input_, output_channels, 
-	filter_width = 1, stride = 1, stddev=0.02,
-	name = 'conv1d'):
+# See http://arxiv.org/abs/1502.01852
+def he_uniform(filter_width, in_dim, scale=1):
+	fan_in = filter_width * in_dim
+	return np.sqrt(1. * scale / fan_in)
+
+def conv1d(input_,
+		   output_channels,
+		   filter_width = 1,
+		   stride       = 1,
+		   name         = 'conv1d'
+		  ):
 	with tf.variable_scope(name):
-		input_shape = input_.get_shape()
-		input_channels = input_shape[-1]
-		filter_ = tf.get_variable('w', [filter_width, input_channels, output_channels],
-			initializer=tf.truncated_normal_initializer(stddev=stddev))
-		conv = tf.nn.conv1d(input_, filter_, stride = stride, padding = 'SAME')
-		biases = tf.get_variable('biases', [output_channels], initializer=tf.constant_initializer(0.0))
-		conv = tf.reshape(tf.nn.bias_add(conv, biases), conv.get_shape())
-		return conv
+		in_dim = input_.get_shape().as_list()[-1]
+
+		scale = he_uniform(filter_width, in_dim)
+		w = tf.get_variable('W', [filter_width, in_dim, output_channels],
+			initializer = tf.random_uniform_initializer(minval=-scale, maxval=scale),
+			trainable   = True)
+		b = tf.get_variable('b', [output_channels], initializer=tf.constant_initializer(0.0))
+
+		conv = tf.nn.conv1d(input_, w, stride = stride, padding = 'SAME')
+		return tf.reshape(tf.nn.bias_add(conv, b), conv.get_shape())
 
 def dilated_conv1d(input_, output_channels, dilation, 
 	filter_width = 1, causal = False, name = 'dilated_conv'):
