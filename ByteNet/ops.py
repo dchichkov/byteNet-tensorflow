@@ -62,7 +62,7 @@ def dilated_conv1d(input_, output_channels, dilation,
 	else:
 		restored = conv1d(padded, output_channels, filter_width, name = name)
 
-	
+	# Remove excess elements at the end
 	result = tf.slice(restored,[0, 0, 0],[-1, int(input_.get_shape()[1]), -1])
 	
 	return result

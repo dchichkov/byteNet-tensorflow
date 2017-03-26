@@ -21,7 +21,9 @@ def main():
                        help='Pre-Trained Model Path, to resume from')
 	parser.add_argument('--data_dir', type=str, default='Data',
                        help='Data Directory')
-	
+	parser.add_argument('--log_dir', type=str, default='logs',
+						help='Path to TensorBoard logs')
+
 	args = parser.parse_args()
 	
 	# model_config = json.loads( open('model_config.json').read() )
@@ -41,7 +43,10 @@ def main():
 	byte_net = model.Byte_net_model(model_options)
 	bn_tensors = byte_net.build_prediction_model()
 
-	writer = tf.train.SummaryWriter("logs", graph=tf.get_default_graph())
+	# Set up logging for TensorBoard
+	writer = tf.summary.FileWriter(args.log_dir, graph=tf.get_default_graph())
+	run_metadata = tf.RunMetadata()
+	summaries = tf.summary.merge_all()
 
 	optim = tf.train.AdamOptimizer(args.learning_rate, beta1 = args.beta1) \
 		.minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
@@ -60,28 +65,27 @@ def main():
 	models_path = "Data/Models/"
 	if not os.path.exists(models_path): os.makedirs(models_path)
 
-	summary_op = tf.merge_all_summaries()
-
-	for i in range(args.max_epochs):
-		batch_no = 0
+	for epoch in range(args.max_epochs):
+		step = 0
 		batch_size = args.batch_size
-		while (batch_no + 1) * batch_size < text_samples.shape[0]:
-			text_batch = text_samples[batch_no*batch_size : (batch_no + 1)*batch_size, :]
-			_, summary, loss, prediction = sess.run([optim, summary_op, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
+		while (step + 1) * batch_size < text_samples.shape[0]:
+			text_batch = text_samples[step*batch_size : (step + 1)*batch_size, :]
+			_, summary, loss, prediction = sess.run([optim, summaries, bn_tensors['loss'], bn_tensors['prediction']], feed_dict = {
 				bn_tensors['sentence'] : text_batch
 			})
 
 			print("-------------------------------------------------------")
 			print(utils.list_to_string(prediction))
-			print("Loss", i, batch_no, loss)
+			print("Epoch", epoch, "  Step", step, "  Loss", loss)
 			print("********************************************************")
 
-			writer.add_summary(summary, batch_no)
+			writer.add_summary(summary, step)
+			writer.add_run_metadata(run_metadata, 'step_{:04d}'.format(step))
 
-			batch_no += 1
+			step += 1
 			
-			if batch_no % 500 == 0:
-				saver.save(sess, models_path + "model_epoch_{}.ckpt".format(i))
+			if step % 500 == 0:
+				saver.save(sess, models_path + "model_epoch_{}.ckpt".format(epoch))
 
 if __name__ == '__main__':
 	main()
