@@ -42,15 +42,14 @@ def conv1d(input_,
 
 def dilated_conv1d(input_, output_channels, dilation, 
 	filter_width = 1, causal = False, name = 'dilated_conv'):
-	
-	
+
 	if causal:
 		# padding for masked convolution
 		padding = [[0, 0], [(filter_width - 1) * dilation, 0], [0, 0]]
-		padded = tf.pad(input_, padding)
 	else:
 		padding = [[0, 0], [(filter_width - 1) * dilation/2, (filter_width - 1) * dilation/2], [0, 0]]
-		padded = tf.pad(input_, padding)
+
+	padded = tf.pad(input_, padding)
 	
 	if dilation > 1:
 		transformed = time_to_batch(padded, dilation)
