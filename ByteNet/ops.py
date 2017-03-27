@@ -35,8 +35,7 @@ def conv1d(input_,
 
 		scale = he_uniform(filter_width, in_dim)
 		w = tf.get_variable('W', [filter_width, in_dim, output_channels],
-			initializer = tf.random_uniform_initializer(minval=-scale, maxval=scale),
-			trainable   = True)
+			initializer = tf.random_uniform_initializer(minval=-scale, maxval=scale))
 		b = tf.get_variable('b', [output_channels], initializer=tf.constant_initializer(0.0))
 
 		return tf.nn.conv1d(input_, w, stride = stride, padding = 'SAME') + b
