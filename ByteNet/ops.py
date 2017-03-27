@@ -4,8 +4,7 @@ import tensorflow as tf
 def time_to_batch(value, dilation):
 	# FOR DILATED CONVOLUTION, code adapted from tensorflow-wavenet
 	with tf.name_scope('time_to_batch'):
-		shape = value.get_shape()
-		shape = [int(s) for s in shape]
+		shape = value.get_shape().as_list()
 		pad_elements = dilation - 1 - (int(shape[1]) + dilation - 1) % dilation
 		padded = tf.pad(value, [[0, 0], [0, pad_elements], [0, 0]])
 		reshaped = tf.reshape(padded, [-1, dilation, shape[2]])
@@ -14,8 +13,7 @@ def time_to_batch(value, dilation):
 
 def batch_to_time(value, dilation):
 	with tf.name_scope('batch_to_time'):
-		shape = value.get_shape()
-		shape = [int(s) for s in shape]
+		shape = value.get_shape().as_list()
 		prepared = tf.reshape(value, [dilation, -1, shape[2]])
 		transposed = tf.transpose(prepared, perm=[1, 0, 2])
 		return tf.reshape(transposed,
