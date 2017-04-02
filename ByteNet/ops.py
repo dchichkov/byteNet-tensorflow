@@ -19,23 +19,18 @@ def batch_to_time(value, dilation):
 		return tf.reshape(transposed,
 						  [int(batch_size / dilation), -1, embedding_size])
 
-# See http://arxiv.org/abs/1502.01852
-def he_uniform(filter_width, in_dim, scale=1):
-	fan_in = filter_width * in_dim
-	return np.sqrt(1. * scale / fan_in)
-
 def conv1d(input_,
 		   output_channels,
 		   filter_width = 1,
 		   stride       = 1,
+		   stddev       = 0.02,
 		   name         = 'conv1d'
 		  ):
 	with tf.variable_scope(name):
 		in_dim = input_.get_shape().as_list()[-1]
 
-		scale = he_uniform(filter_width, in_dim)
 		w = tf.get_variable('W', [filter_width, in_dim, output_channels],
-			initializer = tf.random_uniform_initializer(minval=-scale, maxval=scale))
+			initializer = tf.truncated_normal_initializer(stddev=stddev))
 		b = tf.get_variable('b', [output_channels], initializer=tf.constant_initializer(0.0))
 
 		return tf.nn.conv1d(input_, w, stride = stride, padding = 'SAME') + b
