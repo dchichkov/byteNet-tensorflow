@@ -275,7 +275,7 @@ class Byte_net_model:
 
 
 		processed_output = ops.conv1d(
-			curr_input,
+			tf.nn.relu(curr_input),
 			options['n_target_quant'], 
 			name = 'decoder_post_processing')
 
