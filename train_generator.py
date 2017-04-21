@@ -74,10 +74,11 @@ def main():
 				bn_tensors['sentence'] : text_batch
 			})
 
-			print("-------------------------------------------------------")
-			print(utils.list_to_string(prediction))
-			print("Epoch", epoch, "  Step", step, "  Loss", loss)
-			print("********************************************************")
+			if step % 50 == 0:
+				print("-------------------------------------------------------")
+				print(utils.list_to_string(prediction))
+				print("Epoch", epoch, "  Step", step, "  Loss", loss)
+				print("********************************************************")
 
 			writer.add_summary(summary, step)
 			writer.add_run_metadata(run_metadata, 'step_{:04d}'.format(step))

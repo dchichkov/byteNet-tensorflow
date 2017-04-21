@@ -23,6 +23,8 @@ def main():
                        help='Source File')
 	parser.add_argument('--target_file', type=str, default='Data/MachineTranslation/news-commentary-v11.de-en.en',
                        help='Target File')
+	parser.add_argument('--log_dir', type=str, default='logs',
+						help='Path to TensorBoard logs')
 
 
 
@@ -95,7 +97,10 @@ def main():
 			optim = adam.minimize(bn_tensors['loss'], var_list=bn_tensors['variables'])
 			
 			
-			train_writer = tf.train.SummaryWriter('logs/', sess.graph)
+			# train_writer = tf.train.SummaryWriter('logs/', sess.graph)
+			# Set up logging for TensorBoard
+			train_writer = tf.summary.FileWriter(args.log_dir, graph=tf.get_default_graph())
+
 			tf.initialize_all_variables().run()
 
 			saver = tf.train.Saver()
@@ -116,15 +121,16 @@ def main():
 					})
 				
 				train_writer.add_summary(summary, batch_no * (cnt + 1))
-				print("Loss", loss, batch_no, len(buckets[key])/batch_size, i, cnt, key)
-				
-				print("******")
-				print("Source ", dl.inidices_to_string(source[0], source_vocab))
-				print("---------")
-				print("Target ", dl.inidices_to_string(target[0], target_vocab))
-				print("----------")
-				print("Prediction ",dl.inidices_to_string(prediction[0:key], target_vocab))
-				print("******")
+				if batch_no % 50 == 0:
+					print("Loss", loss, batch_no, len(buckets[key])/batch_size, i, cnt, key)
+					
+					print("******")
+					print("Source ", dl.inidices_to_string(source[0], source_vocab))
+					print("---------")
+					print("Target ", dl.inidices_to_string(target[0], target_vocab))
+					print("----------")
+					print("Prediction ",dl.inidices_to_string(prediction[0:key], target_vocab))
+					print("******")
 				
 				batch_no += 1
 				if batch_no % 1000 == 0:

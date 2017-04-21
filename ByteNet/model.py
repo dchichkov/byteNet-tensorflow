@@ -67,7 +67,7 @@ class Byte_net_model:
 
 		source_embedding = tf.nn.embedding_lookup(self.w_source_embedding, source_sentence)
 		# MASK EMBEDDING BEYOND SOURCE LENGTH
-		source_embedding = tf.mul(source_embedding, self.source_masked, name = "source_embedding")
+		source_embedding = tf.multiply(source_embedding, self.source_masked, name = "source_embedding")
 		
 
 		# Input to the decoder
@@ -99,7 +99,7 @@ class Byte_net_model:
 		
 		variables = tf.trainable_variables()
 
-		merged_summary = tf.merge_all_summaries()
+		merged_summary = tf.summary.merge_all()
 		
 		# first_column_decoder = t
 		tensors = {
@@ -171,7 +171,7 @@ class Byte_net_model:
 			name = 'source_masked_d')
 
 		source_embedding = tf.nn.embedding_lookup(self.w_source_embedding, source_sentence)
-		source_embedding = tf.mul(source_embedding, self.source_masked, name = "source_embedding")
+		source_embedding = tf.multiply(source_embedding, self.source_masked, name = "source_embedding")
 
 		target1_embedding = tf.nn.embedding_lookup(self.w_target_embedding, target_sentence, name = "target1_embedding")
 
@@ -221,12 +221,12 @@ class Byte_net_model:
 
 		flat_logits = tf.reshape(decoder_output, [-1, options['n_target_quant']])
 		flat_targets = tf.reshape(target_one_hot, [-1, options['n_target_quant']])
-		loss = tf.nn.softmax_cross_entropy_with_logits(flat_logits, flat_targets, name='decoder_cross_entropy_loss')
+		loss = tf.nn.softmax_cross_entropy_with_logits(logits = flat_logits, labels = flat_targets, name='decoder_cross_entropy_loss')
 
 		if 'target_mask_chars' in options:
 			# MASK LOSS BEYOND EOL IN TARGET
 			target_masked = tf.reshape( self.target_masked, [-1])
-			loss = tf.mul( loss, target_masked, name = 'masked_loss')
+			loss = tf.multiply( loss, target_masked, name = 'masked_loss')
 			loss = tf.div( tf.reduce_sum(loss),tf.reduce_sum(target_masked), name = "Reduced_mean_loss")
 		else:
 			loss = tf.reduce_mean(loss, name = "Reduced_mean_loss")
@@ -266,7 +266,7 @@ class Byte_net_model:
 		curr_input = input_
 		if encoder_embedding is not None:
 			# CONDITION WITH ENCODER EMBEDDING FOR THE TRANSLATION MODEL
-			curr_input = tf.concat(2, [input_, encoder_embedding])
+			curr_input = tf.concat([input_, encoder_embedding], 2)
 			print("Decoder Input", curr_input)
 			
 
@@ -287,14 +287,14 @@ class Byte_net_model:
 		options = self.options
 		relu1 = tf.nn.relu(input_, name = 'enc_relu1_layer{}'.format(layer_no))
 		conv1 = ops.conv1d(relu1, options['residual_channels'], name = 'enc_conv1d_1_layer{}'.format(layer_no))
-		conv1 = tf.mul(conv1, self.source_masked_d)
+		conv1 = tf.multiply(conv1, self.source_masked_d)
 		relu2 = tf.nn.relu(conv1, name = 'enc_relu2_layer{}'.format(layer_no))
 		dilated_conv = ops.dilated_conv1d(relu2, options['residual_channels'], 
 			dilation, options['encoder_filter_width'],
 			causal = False, 
 			name = "enc_dilated_conv_layer{}".format(layer_no)
 			)
-		dilated_conv = tf.mul(dilated_conv, self.source_masked_d)
+		dilated_conv = tf.multiply(dilated_conv, self.source_masked_d)
 		relu3 = tf.nn.relu(dilated_conv, name = 'enc_relu3_layer{}'.format(layer_no))
 		conv2 = ops.conv1d(relu3, 2 * options['residual_channels'], name = 'enc_conv1d_2_layer{}'.format(layer_no))
 		return input_ + conv2
@@ -306,7 +306,7 @@ class Byte_net_model:
 			layer_output = self.encode_layer(curr_input, dilation, layer_no)
 
 			# ENCODE ONLY TILL THE INPUT LENGTH, conditioning should be 0 beyond that
-			layer_output = tf.mul(layer_output, self.source_masked, name = 'layer_{}_output'.format(layer_no))
+			layer_output = tf.multiply(layer_output, self.source_masked, name = 'layer_{}_output'.format(layer_no))
 
 			curr_input = layer_output
 		
@@ -315,6 +315,6 @@ class Byte_net_model:
 			options['residual_channels'], 
 			name = 'encoder_post_processing') )
 
-		processed_output = tf.mul(processed_output, self.source_masked_d, name = 'encoder_processed')
+		processed_output = tf.multiply(processed_output, self.source_masked_d, name = 'encoder_processed')
 
 		return processed_output
